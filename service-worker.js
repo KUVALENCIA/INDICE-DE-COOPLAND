@@ -1,5 +1,5 @@
-// ¡ACTUALIZADO! Cambiamos de 'v2' a 'v3' para forzar la actualización con el nuevo campo de Edad
-const CACHE_NAME = 'coopland-v3';
+// ¡ACTUALIZADO! Cambiamos a 'v4' para forzar la actualización con la lógica automática de Edad
+const CACHE_NAME = 'coopland-v4';
 const urlsToCache = [
   './',
   './index.html',
@@ -10,10 +10,11 @@ const urlsToCache = [
 
 // Instalar el Service Worker y forzar que tome el control inmediatamente
 self.addEventListener('install', event => {
-  self.skipWaiting(); // Le dice al teléfono: "¡Usa esta versión ahora mismo!"
+  self.skipWaiting(); // Le dice al teléfono o navegador: "¡Usa esta versión ahora mismo!"
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
+        console.log('Archivos cacheados correctamente para la versión 4');
         return cache.addAll(urlsToCache);
       })
   );
@@ -25,8 +26,9 @@ self.addEventListener('activate', event => {
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
-          // Si el nombre de la caché antigua no coincide con la versión actual (v3), se borra
+          // Si el nombre de la caché antigua no coincide con la versión actual (v4), se borra
           if (cacheName !== CACHE_NAME) {
+            console.log('Borrando caché antigua:', cacheName);
             return caches.delete(cacheName);
           }
         })
@@ -46,7 +48,7 @@ self.addEventListener('fetch', event => {
         return response;
       });
     }).catch(() => {
-      // 2. Si falla (porque no hay internet), usa la versión que guardamos en el teléfono
+      // 2. Si falla (porque el usuario no tiene internet), usa la versión que guardamos en el teléfono
       return caches.match(event.request);
     })
   );

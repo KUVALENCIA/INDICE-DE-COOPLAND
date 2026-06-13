@@ -149,11 +149,11 @@
     </div>
     <div class="form-group">
         <label>Edad (Años):</label>
-        <input type="number" id="edadPaciente" placeholder="Ej. 28 (Si no sabe fecha de nac.)">
+        <input type="number" id="edadPaciente" placeholder="Se calcula solo o escribe la edad">
     </div>
 
     <div class="form-group">
-        <label>Edad para puntaje obstétrico:</label>
+        <label>Edad para puntaje obstétrico (Se marca automáticamente):</label>
         <select id="edadSelect">
             <option value="2">Menos de 18 años (2 pts)</option>
             <option value="0" selected>Entre 18 y 35 años (0 pts)</option>
@@ -242,45 +242,79 @@
 </div>
 
 <script>
-    // JS: Lógica de cálculo de la aplicación
+    // --- NUEVO: Lógica Automática de Edad ---
+    
+    // 1. Calcular edad si se elige una fecha de nacimiento
+    document.getElementById('fechaNacimiento').addEventListener('change', function() {
+        if (this.value) {
+            let fechaNac = new Date(this.value + 'T00:00:00'); // Evita errores de zona horaria
+            let hoy = new Date();
+            let edad = hoy.getFullYear() - fechaNac.getFullYear();
+            let mes = hoy.getMonth() - fechaNac.getMonth();
+            
+            // Ajustar si aún no ha cumplido años en este año
+            if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNac.getDate())) {
+                edad--;
+            }
+            
+            // Asignar el valor al campo de Edad
+            let inputEdad = document.getElementById('edadPaciente');
+            inputEdad.value = edad;
+            
+            // Disparar el evento 'input' para que se asigne el puntaje automáticamente
+            inputEdad.dispatchEvent(new Event('input'));
+        }
+    });
+
+    // 2. Asignar el puntaje automáticamente basado en el campo de Edad (Ya sea calculado o manual)
+    document.getElementById('edadPaciente').addEventListener('input', function() {
+        let edad = parseInt(this.value);
+        let edadSelect = document.getElementById('edadSelect');
+        
+        if (!isNaN(edad)) {
+            if (edad < 18) {
+                edadSelect.selectedIndex = 0; // Menos de 18 años (2 pts)
+            } else if (edad >= 18 && edad <= 35) {
+                edadSelect.selectedIndex = 1; // Entre 18 y 35 años (0 pts)
+            } else {
+                edadSelect.selectedIndex = 2; // Más de 35 años (2 pts)
+            }
+        }
+    });
+    // ------------------------------------------
+
     let resumenActual = "";
 
     function calcularRiesgo() {
         let total = 0;
         
-        // Sumar selectores de Edad y Paridad
         total += parseInt(document.getElementById('edadSelect').value);
         total += parseInt(document.getElementById('paridadSelect').value);
-
-        // Sumar severidad de padecimiento médico genérico
         total += parseInt(document.getElementById('padecimientoSeveridad').value);
 
-        // Sumar todos los checkboxes seleccionados
         let checkboxes = document.querySelectorAll('.factor:checked');
         checkboxes.forEach(function(cb) {
             total += parseInt(cb.value);
         });
 
-        // Determinar nivel de riesgo y asignar un emoji visual
         let nivel = "";
         let color = "";
         let emojiRiesgo = "";
 
         if (total <= 3) {
             nivel = "Riesgo Bajo"; 
-            color = "#d4edda"; // Verde
+            color = "#d4edda"; 
             emojiRiesgo = "🟢";
         } else if (total <= 6) {
             nivel = "Riesgo Moderado"; 
-            color = "#fff3cd"; // Amarillo
+            color = "#fff3cd"; 
             emojiRiesgo = "🟡";
         } else {
             nivel = "Riesgo Alto"; 
-            color = "#f8d7da"; // Rojo
+            color = "#f8d7da"; 
             emojiRiesgo = "🔴";
         }
 
-        // Obtener datos del formulario (Se añade la lectura de la edad de la paciente)
         let nombre = document.getElementById('nombre').value || "Paciente sin nombre";
         let fechaNac = document.getElementById('fechaNacimiento').value || "No especificada";
         
@@ -289,7 +323,6 @@
         
         let elaboro = document.getElementById('elaboro').value || "No especificado";
 
-        // Crear el resumen con EMOJIS, formato para WhatsApp y la NUEVA EDAD
         resumenActual = `📋 *Resumen de Evaluación Obstétrica*\n\n` +
                         `👤 *Paciente:* ${nombre}\n` +
                         `📅 *Fecha de Nac.*: ${fechaNac}\n` +
@@ -298,7 +331,6 @@
                         `${emojiRiesgo} *Categoría:* ${nivel}\n\n` +
                         `🩺 *Elaboró:* ${elaboro}`;
 
-        // Mostrar en pantalla dentro de la aplicación
         let resDiv = document.getElementById('resultado');
         resDiv.style.display = "block";
         resDiv.style.backgroundColor = color;
@@ -325,7 +357,6 @@
                 .then(registro => {
                     console.log('Service Worker registrado con éxito:', registro);
 
-                    // Escuchamos si hay una nueva actualización disponible en GitHub
                     registro.addEventListener('updatefound', () => {
                         const nuevoWorker = registro.installing;
                         nuevoWorker.addEventListener('statechange', () => {
