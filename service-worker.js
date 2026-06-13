@@ -1,5 +1,5 @@
-// ¡NUEVO! Cambia 'v1' por 'v2', 'v3', etc., cada vez que actualices tu app en GitHub
-const CACHE_NAME = 'coopland-v1';
+// ¡ACTUALIZADO! Cambiamos de 'v1' a 'v2' para forzar la actualización en los dispositivos
+const CACHE_NAME = 'coopland-v2';
 const urlsToCache = [
   './',
   './index.html',
@@ -25,7 +25,7 @@ self.addEventListener('activate', event => {
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
-          // Si el nombre de la caché no es igual al actual, lo borramos
+          // Si el nombre de la caché antigua no coincide con 'coopland-v2', se borra
           if (cacheName !== CACHE_NAME) {
             return caches.delete(cacheName);
           }

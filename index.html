@@ -257,18 +257,23 @@
             total += parseInt(cb.value);
         });
 
-        // Determinar nivel de riesgo
+        // Determinar nivel de riesgo y asignar un emoji visual
         let nivel = "";
         let color = "";
+        let emojiRiesgo = "";
+
         if (total <= 3) {
             nivel = "Riesgo Bajo"; 
-            color = "#d4edda"; 
+            color = "#d4edda"; // Verde
+            emojiRiesgo = "🟢";
         } else if (total <= 6) {
             nivel = "Riesgo Moderado"; 
-            color = "#fff3cd"; 
+            color = "#fff3cd"; // Amarillo
+            emojiRiesgo = "🟡";
         } else {
             nivel = "Riesgo Alto"; 
-            color = "#f8d7da"; 
+            color = "#f8d7da"; // Rojo
+            emojiRiesgo = "🔴";
         }
 
         // Obtener datos del formulario
@@ -276,20 +281,20 @@
         let fechaNac = document.getElementById('fechaNacimiento').value || "No especificada";
         let elaboro = document.getElementById('elaboro').value || "No especificado";
 
-        // Crear el resumen
-        resumenActual = `*Resumen de Evaluación Obstétrica*\n` +
-                        `Paciente: ${nombre}\n` +
-                        `Fecha de Nacimiento: ${fechaNac}\n` +
-                        `Puntaje de Coopland: ${total}\n` +
-                        `Categoría: ${nivel}\n` +
-                        `Elaboró: ${elaboro}`;
+        // Crear el resumen con EMOJIS y formato para WhatsApp
+        resumenActual = `📋 *Resumen de Evaluación Obstétrica*\n\n` +
+                        `👤 *Paciente:* ${nombre}\n` +
+                        `📅 *Fecha de Nac.*: ${fechaNac}\n` +
+                        `🔢 *Puntaje Coopland:* ${total}\n` +
+                        `${emojiRiesgo} *Categoría:* ${nivel}\n\n` +
+                        `🩺 *Elaboró:* ${elaboro}`;
 
-        // Mostrar en pantalla
+        // Mostrar en pantalla dentro de la aplicación
         let resDiv = document.getElementById('resultado');
         resDiv.style.display = "block";
         resDiv.style.backgroundColor = color;
         document.getElementById('textoResultado').innerHTML = 
-            `Puntaje Total: <strong>${total}</strong><br>Categoría: <strong>${nivel}</strong><br><small>Elaboró: ${elaboro}</small>`;
+            `Puntaje Total: <strong>${total}</strong><br>Categoría: <strong>${nivel} ${emojiRiesgo}</strong><br><small>Elaboró: ${elaboro}</small>`;
     }
 
     function compartirWhatsApp() {
@@ -305,20 +310,17 @@
 </script>
 
 <script>
-    // Verificamos si el navegador soporta Service Workers
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('service-worker.js')
                 .then(registro => {
                     console.log('Service Worker registrado con éxito:', registro);
 
-                    // Escuchamos si hay una nueva actualización disponible en GitHub (cambiaste de v1 a v2, etc.)
+                    // Escuchamos si hay una nueva actualización disponible en GitHub
                     registro.addEventListener('updatefound', () => {
                         const nuevoWorker = registro.installing;
                         nuevoWorker.addEventListener('statechange', () => {
-                            // Si se instaló un nuevo worker y ya había uno viejo controlando la app...
                             if (nuevoWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                // ¡Refrescamos la página automáticamente para aplicar los cambios en la pantalla!
                                 console.log('¡Nueva versión encontrada! Actualizando...');
                                 window.location.reload();
                             }
