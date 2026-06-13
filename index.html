@@ -41,7 +41,6 @@
             text-align: center;
             margin-bottom: 20px;
         }
-        /* Logotipo creado en CSS/SVG */
         .logo svg {
             width: 80px;
             height: 80px;
@@ -65,6 +64,7 @@
             border: 1px solid #ccc;
             border-radius: 8px;
             box-sizing: border-box;
+            font-size: 14px;
         }
         .checkbox-group {
             background: var(--secondary-color);
@@ -78,10 +78,15 @@
             margin-bottom: 8px;
             font-weight: normal;
         }
-        .checkbox-item input {
+        .checkbox-item input[type="checkbox"] {
             margin-right: 10px;
             width: 18px;
             height: 18px;
+        }
+        .select-inline {
+            margin-top: 5px;
+            margin-bottom: 10px;
+            width: 100%;
         }
         button {
             width: 100%;
@@ -168,8 +173,15 @@
         <label class="checkbox-item"><input type="checkbox" class="factor" value="2"> Enfermedad Renal Crónica (2)</label>
         <label class="checkbox-item"><input type="checkbox" class="factor" value="3"> Cardiopatía (NYHA III o IV) (3)</label>
         <label class="checkbox-item"><input type="checkbox" class="factor" value="1"> Cardiopatía (NYHA II) (1)</label>
-        <label class="checkbox-item"><input type="checkbox" class="factor" value="2"> Cirugía Ginecológica previa (2)</label>
-        <label class="checkbox-item"><input type="checkbox" class="factor" value="2"> Cualquier padecimiento médico (Asma, TB, etc.) (2)</label>
+        <label class="checkbox-item"><input type="checkbox" class="factor" value="1"> Cirugía Ginecológica previa (1)</label>
+        
+        <label style="margin-top: 10px; font-weight: normal; display: block;">Cualquier padecimiento médico: asma, epilepsia, Tb, enfermedad autoinmune, etc. (1-3 pts):</label>
+        <select id="padecimientoSeveridad" class="select-inline">
+            <option value="0" selected>Ninguno (0 pts)</option>
+            <option value="1">Leve (1 pt)</option>
+            <option value="2">Moderado (2 pts)</option>
+            <option value="3">Severo (3 pts)</option>
+        </select>
     </div>
 
     <label>Antecedentes Obstétricos:</label>
@@ -177,11 +189,14 @@
         <label class="checkbox-item"><input type="checkbox" class="factor" value="1"> Infertilidad (1)</label>
         <label class="checkbox-item"><input type="checkbox" class="factor" value="1"> Dos o más abortos del primer trimestre (1)</label>
         <label class="checkbox-item"><input type="checkbox" class="factor" value="2"> Dos o más abortos del segundo trimestre (2)</label>
-        <label class="checkbox-item"><input type="checkbox" class="factor" value="1"> Algún RN menor a 2500 g o mayor a 4000 g (1)</label>
+        <label class="checkbox-item"><input type="checkbox" class="factor" value="1"> Algún RN menor a 2500 g o mayor a 4000 g de peso al nacimiento (1)</label>
         <label class="checkbox-item"><input type="checkbox" class="factor" value="1"> Cesárea previa (1)</label>
         <label class="checkbox-item"><input type="checkbox" class="factor" value="3"> Muerte fetal o muerte neonatal (3)</label>
         <label class="checkbox-item"><input type="checkbox" class="factor" value="2"> Distocia o trabajo de parto prolongado (2)</label>
         <label class="checkbox-item"><input type="checkbox" class="factor" value="1"> Hemorragia postparto o alumbramiento manual (1)</label>
+        <label class="checkbox-item"><input type="checkbox" class="factor" value="2"> Hipertensión gestacional o preeclampsia (2)</label>
+        <label class="checkbox-item"><input type="checkbox" class="factor" value="3"> Eclampsia (3)</label>
+        <label class="checkbox-item"><input type="checkbox" class="factor" value="2"> Diabetes Gestacional (2)</label>
     </div>
 
     <label>Condiciones en el Embarazo Actual:</label>
@@ -190,9 +205,24 @@
         <label class="checkbox-item"><input type="checkbox" class="factor" value="3"> Sangrado vaginal después de 20 semanas (3)</label>
         <label class="checkbox-item"><input type="checkbox" class="factor" value="1"> Anemia Hb 6-10 g/L (1)</label>
         <label class="checkbox-item"><input type="checkbox" class="factor" value="2"> Anemia Hb menor 6 g/L (2)</label>
+        <label class="checkbox-item"><input type="checkbox" class="factor" value="3"> Aloinmunización Rh (3)</label>
+        <label class="checkbox-item"><input type="checkbox" class="factor" value="3"> No presentación cefálica al término (3)</label>
         <label class="checkbox-item"><input type="checkbox" class="factor" value="3"> Embarazo múltiple (3)</label>
+        <label class="checkbox-item"><input type="checkbox" class="factor" value="3"> Hipertensión (3)</label>
         <label class="checkbox-item"><input type="checkbox" class="factor" value="3"> Eclampsia (3)</label>
         <label class="checkbox-item"><input type="checkbox" class="factor" value="2"> Diabetes Gestacional (2)</label>
+        <label class="checkbox-item"><input type="checkbox" class="factor" value="2"> Placenta previa (2)</label>
+        <label class="checkbox-item"><input type="checkbox" class="factor" value="2"> Ruptura prematura de membranas (2)</label>
+        <label class="checkbox-item"><input type="checkbox" class="factor" value="3"> Ruptura prematura de membranas pretérmino (3)</label>
+        <label class="checkbox-item"><input type="checkbox" class="factor" value="2"> Polihidramnios (2)</label>
+        <label class="checkbox-item"><input type="checkbox" class="factor" value="2"> Oligohidramnios (2)</label>
+        <label class="checkbox-item"><input type="checkbox" class="factor" value="3"> Peso fetal menor percentil 10 para edad gestacional (3)</label>
+        <label class="checkbox-item"><input type="checkbox" class="factor" value="3"> Ultrasonido Doppler fetoplacentario anormal (3)</label>
+    </div>
+
+    <div class="form-group">
+        <label>Elaboró:</label>
+        <input type="text" id="elaboro" placeholder="Nombre del médico o personal que elabora">
     </div>
 
     <button onclick="calcularRiesgo()">Calcular Índice de Riesgo</button>
@@ -218,6 +248,9 @@
         total += parseInt(document.getElementById('edadSelect').value);
         total += parseInt(document.getElementById('paridadSelect').value);
 
+        // Sumar severidad de padecimiento médico genérico
+        total += parseInt(document.getElementById('padecimientoSeveridad').value);
+
         // Sumar todos los checkboxes seleccionados
         let checkboxes = document.querySelectorAll('.factor:checked');
         checkboxes.forEach(function(cb) {
@@ -238,23 +271,25 @@
             color = "#f8d7da"; 
         }
 
-        // Obtener datos del paciente
+        // Obtener datos del formulario
         let nombre = document.getElementById('nombre').value || "Paciente sin nombre";
         let fechaNac = document.getElementById('fechaNacimiento').value || "No especificada";
+        let elaboro = document.getElementById('elaboro').value || "No especificado";
 
         // Crear el resumen
         resumenActual = `*Resumen de Evaluación Obstétrica*\n` +
                         `Paciente: ${nombre}\n` +
                         `Fecha de Nacimiento: ${fechaNac}\n` +
                         `Puntaje de Coopland: ${total}\n` +
-                        `Categoría: ${nivel}`;
+                        `Categoría: ${nivel}\n` +
+                        `Elaboró: ${elaboro}`;
 
         // Mostrar en pantalla
         let resDiv = document.getElementById('resultado');
         resDiv.style.display = "block";
         resDiv.style.backgroundColor = color;
         document.getElementById('textoResultado').innerHTML = 
-            `Puntaje Total: <strong>${total}</strong><br>Categoría: <strong>${nivel}</strong>`;
+            `Puntaje Total: <strong>${total}</strong><br>Categoría: <strong>${nivel}</strong><br><small>Elaboró: ${elaboro}</small>`;
     }
 
     function compartirWhatsApp() {
