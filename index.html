@@ -147,9 +147,13 @@
         <label>Fecha de Nacimiento:</label>
         <input type="date" id="fechaNacimiento">
     </div>
+    <div class="form-group">
+        <label>Edad (Años):</label>
+        <input type="number" id="edadPaciente" placeholder="Ej. 28 (Si no sabe fecha de nac.)">
+    </div>
 
     <div class="form-group">
-        <label>Edad:</label>
+        <label>Edad para puntaje obstétrico:</label>
         <select id="edadSelect">
             <option value="2">Menos de 18 años (2 pts)</option>
             <option value="0" selected>Entre 18 y 35 años (0 pts)</option>
@@ -276,15 +280,20 @@
             emojiRiesgo = "🔴";
         }
 
-        // Obtener datos del formulario
+        // Obtener datos del formulario (Se añade la lectura de la edad de la paciente)
         let nombre = document.getElementById('nombre').value || "Paciente sin nombre";
         let fechaNac = document.getElementById('fechaNacimiento').value || "No especificada";
+        
+        let edadIngresada = document.getElementById('edadPaciente').value;
+        let textoEdad = edadIngresada ? `${edadIngresada} años` : "No especificada";
+        
         let elaboro = document.getElementById('elaboro').value || "No especificado";
 
-        // Crear el resumen con EMOJIS y formato para WhatsApp
+        // Crear el resumen con EMOJIS, formato para WhatsApp y la NUEVA EDAD
         resumenActual = `📋 *Resumen de Evaluación Obstétrica*\n\n` +
                         `👤 *Paciente:* ${nombre}\n` +
                         `📅 *Fecha de Nac.*: ${fechaNac}\n` +
+                        `🎂 *Edad:* ${textoEdad}\n` +
                         `🔢 *Puntaje Coopland:* ${total}\n` +
                         `${emojiRiesgo} *Categoría:* ${nivel}\n\n` +
                         `🩺 *Elaboró:* ${elaboro}`;
