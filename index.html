@@ -216,4 +216,121 @@
         <label class="checkbox-item"><input type="checkbox" class="factor" value="3"> Ruptura prematura de membranas pretérmino (3)</label>
         <label class="checkbox-item"><input type="checkbox" class="factor" value="2"> Polihidramnios (2)</label>
         <label class="checkbox-item"><input type="checkbox" class="factor" value="2"> Oligohidramnios (2)</label>
-        <label class="checkbox-item"><input type
+        <label class="checkbox-item"><input type="checkbox" class="factor" value="3"> Peso fetal menor percentil 10 para edad gestacional (3)</label>
+        <label class="checkbox-item"><input type="checkbox" class="factor" value="3"> Ultrasonido Doppler fetoplacentario anormal (3)</label>
+    </div>
+
+    <div class="form-group">
+        <label>Elaboró:</label>
+        <input type="text" id="elaboro" placeholder="Nombre del médico o personal que elabora">
+    </div>
+
+    <button onclick="calcularRiesgo()">Calcular Índice de Riesgo</button>
+
+    <div id="resultado">
+        <span id="textoResultado"></span>
+        <div class="action-btns">
+            <button class="whatsapp" onclick="compartirWhatsApp()">WhatsApp</button>
+            <button onclick="compartirEmail()">Email</button>
+            <button class="print" onclick="window.print()">Imprimir</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // JS: Lógica de cálculo de la aplicación
+    let resumenActual = "";
+
+    function calcularRiesgo() {
+        let total = 0;
+        
+        // Sumar selectores de Edad y Paridad
+        total += parseInt(document.getElementById('edadSelect').value);
+        total += parseInt(document.getElementById('paridadSelect').value);
+
+        // Sumar severidad de padecimiento médico genérico
+        total += parseInt(document.getElementById('padecimientoSeveridad').value);
+
+        // Sumar todos los checkboxes seleccionados
+        let checkboxes = document.querySelectorAll('.factor:checked');
+        checkboxes.forEach(function(cb) {
+            total += parseInt(cb.value);
+        });
+
+        // Determinar nivel de riesgo
+        let nivel = "";
+        let color = "";
+        if (total <= 3) {
+            nivel = "Riesgo Bajo"; 
+            color = "#d4edda"; 
+        } else if (total <= 6) {
+            nivel = "Riesgo Moderado"; 
+            color = "#fff3cd"; 
+        } else {
+            nivel = "Riesgo Alto"; 
+            color = "#f8d7da"; 
+        }
+
+        // Obtener datos del formulario
+        let nombre = document.getElementById('nombre').value || "Paciente sin nombre";
+        let fechaNac = document.getElementById('fechaNacimiento').value || "No especificada";
+        let elaboro = document.getElementById('elaboro').value || "No especificado";
+
+        // Crear el resumen
+        resumenActual = `*Resumen de Evaluación Obstétrica*\n` +
+                        `Paciente: ${nombre}\n` +
+                        `Fecha de Nacimiento: ${fechaNac}\n` +
+                        `Puntaje de Coopland: ${total}\n` +
+                        `Categoría: ${nivel}\n` +
+                        `Elaboró: ${elaboro}`;
+
+        // Mostrar en pantalla
+        let resDiv = document.getElementById('resultado');
+        resDiv.style.display = "block";
+        resDiv.style.backgroundColor = color;
+        document.getElementById('textoResultado').innerHTML = 
+            `Puntaje Total: <strong>${total}</strong><br>Categoría: <strong>${nivel}</strong><br><small>Elaboró: ${elaboro}</small>`;
+    }
+
+    function compartirWhatsApp() {
+        let url = `https://wa.me/?text=${encodeURIComponent(resumenActual)}`;
+        window.open(url, '_blank');
+    }
+
+    function compartirEmail() {
+        let subject = "Resultado Índice de Coopland";
+        let url = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(resumenActual)}`;
+        window.open(url, '_self');
+    }
+</script>
+
+<script>
+    // Verificamos si el navegador soporta Service Workers
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('service-worker.js')
+                .then(registro => {
+                    console.log('Service Worker registrado con éxito:', registro);
+
+                    // Escuchamos si hay una nueva actualización disponible en GitHub (cambiaste de v1 a v2, etc.)
+                    registro.addEventListener('updatefound', () => {
+                        const nuevoWorker = registro.installing;
+                        nuevoWorker.addEventListener('statechange', () => {
+                            // Si se instaló un nuevo worker y ya había uno viejo controlando la app...
+                            if (nuevoWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                // ¡Refrescamos la página automáticamente para aplicar los cambios en la pantalla!
+                                console.log('¡Nueva versión encontrada! Actualizando...');
+                                window.location.reload();
+                            }
+                        });
+                    });
+                })
+                .catch(error => {
+                    console.log('Hubo un error al registrar el Service Worker:', error);
+                });
+        });
+    }
+</script>
+
+</body>
+</html>
