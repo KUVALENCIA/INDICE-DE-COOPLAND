@@ -1,32 +1,53 @@
-// Nombre de la memoria caché y archivos a guardar
+// ¡NUEVO! Cambia 'v1' por 'v2', 'v3', etc., cada vez que actualices tu app en GitHub
 const CACHE_NAME = 'coopland-v1';
 const urlsToCache = [
   './',
   './index.html',
-  './manifest.json'
-  // Si agregas imágenes de íconos, puedes sumarlas a esta lista así:
-  // './icon-192.png',
-  // './icon-512.png'
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png'
 ];
 
-// Instalar el Service Worker y guardar los archivos
+// Instalar el Service Worker y forzar que tome el control inmediatamente
 self.addEventListener('install', event => {
+  self.skipWaiting(); // Le dice al teléfono: "¡Usa esta versión ahora mismo!"
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('Archivos en caché guardados');
         return cache.addAll(urlsToCache);
       })
   );
 });
 
-// Interceptar las peticiones de red para servir los archivos guardados si no hay internet
+// Activar y borrar la memoria caché antigua (limpieza automática)
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          // Si el nombre de la caché no es igual al actual, lo borramos
+          if (cacheName !== CACHE_NAME) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+  );
+});
+
+// Estrategia "Network First" (Internet Primero)
 self.addEventListener('fetch', event => {
   event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        // Si el archivo está en caché, devuélvelo. Si no, búscalo en internet.
-        return response || fetch(event.request);
-      })
+    // 1. Intenta descargar la versión más reciente de internet
+    fetch(event.request).then(response => {
+      // Si hay internet y se descarga bien, actualizamos la memoria guardada silenciosamente
+      return caches.open(CACHE_NAME).then(cache => {
+        cache.put(event.request, response.clone());
+        return response;
+      });
+    }).catch(() => {
+      // 2. Si falla (porque no hay internet), usa la versión que guardamos en el teléfono
+      return caches.match(event.request);
+    })
   );
 });
