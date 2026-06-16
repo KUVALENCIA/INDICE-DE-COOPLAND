@@ -19,6 +19,7 @@
             --secondary-color: #f8f9fa;
             --text-color: #333;
             --border-radius: 12px;
+            --danger-color: #dc3545;
         }
         body {
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -88,6 +89,24 @@
             margin-bottom: 10px;
             width: 100%;
         }
+        
+        /* ¡NUEVO! Estilos de la caja de referencias */
+        .reference-box {
+            background-color: #e9ecef;
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        .reference-box h4 {
+            margin: 0 0 10px 0;
+            color: var(--text-color);
+        }
+        .reference-box p {
+            margin: 5px 0;
+        }
+
         button {
             width: 100%;
             padding: 15px;
@@ -104,6 +123,15 @@
         button:hover {
             background-color: #c2256b;
         }
+        
+        /* ¡NUEVO! Estilos para el botón de limpiar */
+        .btn-clear {
+            background-color: var(--danger-color);
+        }
+        .btn-clear:hover {
+            background-color: #c82333;
+        }
+
         .action-btns {
             display: flex;
             gap: 10px;
@@ -142,6 +170,10 @@
     <div class="form-group">
         <label>Nombre de la Paciente:</label>
         <input type="text" id="nombre" placeholder="Ej. María Pérez">
+    </div>
+    <div class="form-group">
+        <label>Expediente / CURP:</label>
+        <input type="text" id="expediente" placeholder="Ej. 1234567 o CURP de la paciente">
     </div>
     <div class="form-group">
         <label>Fecha de Nacimiento:</label>
@@ -229,9 +261,15 @@
         <input type="text" id="elaboro" placeholder="Nombre del médico o personal que elabora">
     </div>
 
-    <button onclick="calcularRiesgo()">Calcular Índice de Riesgo</button>
+    <div class="reference-box">
+        <h4>Valores de Referencia de Riesgo:</h4>
+        <p>🟢 <strong>Riesgo Bajo:</strong> 0 a 3 puntos</p>
+        <p>🟡 <strong>Riesgo Moderado:</strong> 4 a 6 puntos</p>
+        <p>🔴 <strong>Riesgo Alto:</strong> 7 o más puntos</p>
+    </div>
 
-    <div id="resultado">
+    <button onclick="calcularRiesgo()">Calcular Índice de Riesgo</button>
+    <button class="btn-clear" onclick="limpiarFormulario()">Limpiar Datos</button> <div id="resultado">
         <span id="textoResultado"></span>
         <div class="action-btns">
             <button class="whatsapp" onclick="compartirWhatsApp()">WhatsApp</button>
@@ -242,46 +280,65 @@
 </div>
 
 <script>
-    // --- NUEVO: Lógica Automática de Edad ---
-    
-    // 1. Calcular edad si se elige una fecha de nacimiento
+    // Lógica Automática de Edad
     document.getElementById('fechaNacimiento').addEventListener('change', function() {
         if (this.value) {
-            let fechaNac = new Date(this.value + 'T00:00:00'); // Evita errores de zona horaria
+            let fechaNac = new Date(this.value + 'T00:00:00');
             let hoy = new Date();
             let edad = hoy.getFullYear() - fechaNac.getFullYear();
             let mes = hoy.getMonth() - fechaNac.getMonth();
             
-            // Ajustar si aún no ha cumplido años en este año
             if (mes < 0 || (mes === 0 && hoy.getDate() < fechaNac.getDate())) {
                 edad--;
             }
             
-            // Asignar el valor al campo de Edad
             let inputEdad = document.getElementById('edadPaciente');
             inputEdad.value = edad;
-            
-            // Disparar el evento 'input' para que se asigne el puntaje automáticamente
             inputEdad.dispatchEvent(new Event('input'));
         }
     });
 
-    // 2. Asignar el puntaje automáticamente basado en el campo de Edad (Ya sea calculado o manual)
     document.getElementById('edadPaciente').addEventListener('input', function() {
         let edad = parseInt(this.value);
         let edadSelect = document.getElementById('edadSelect');
         
         if (!isNaN(edad)) {
             if (edad < 18) {
-                edadSelect.selectedIndex = 0; // Menos de 18 años (2 pts)
+                edadSelect.selectedIndex = 0; 
             } else if (edad >= 18 && edad <= 35) {
-                edadSelect.selectedIndex = 1; // Entre 18 y 35 años (0 pts)
+                edadSelect.selectedIndex = 1; 
             } else {
-                edadSelect.selectedIndex = 2; // Más de 35 años (2 pts)
+                edadSelect.selectedIndex = 2; 
             }
         }
     });
-    // ------------------------------------------
+
+    // Lógica para Limpiar Formulario
+    function limpiarFormulario() {
+        // Limpiar campos de texto y números
+        document.getElementById('nombre').value = '';
+        document.getElementById('expediente').value = '';
+        document.getElementById('fechaNacimiento').value = '';
+        document.getElementById('edadPaciente').value = '';
+        document.getElementById('elaboro').value = '';
+
+        // Restaurar Selects a su valor por defecto
+        document.getElementById('edadSelect').selectedIndex = 1; // 0 pts
+        document.getElementById('paridadSelect').selectedIndex = 1; // 0 pts
+        document.getElementById('padecimientoSeveridad').selectedIndex = 0; // 0 pts
+
+        // Desmarcar todos los checkboxes
+        let checkboxes = document.querySelectorAll('.factor:checked');
+        checkboxes.forEach(function(cb) {
+            cb.checked = false;
+        });
+
+        // Ocultar resultados
+        document.getElementById('resultado').style.display = 'none';
+
+        // Volver arriba suavemente
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
 
     let resumenActual = "";
 
@@ -315,16 +372,18 @@
             emojiRiesgo = "🔴";
         }
 
+        // Obtener datos
         let nombre = document.getElementById('nombre').value || "Paciente sin nombre";
+        let expediente = document.getElementById('expediente').value || "No especificado";
         let fechaNac = document.getElementById('fechaNacimiento').value || "No especificada";
-        
         let edadIngresada = document.getElementById('edadPaciente').value;
         let textoEdad = edadIngresada ? `${edadIngresada} años` : "No especificada";
-        
         let elaboro = document.getElementById('elaboro').value || "No especificado";
 
+        // Armar el texto con el nuevo campo Expediente/CURP
         resumenActual = `📋 *Resumen de Evaluación Obstétrica*\n\n` +
                         `👤 *Paciente:* ${nombre}\n` +
+                        `🆔 *Expediente/CURP:* ${expediente}\n` +
                         `📅 *Fecha de Nac.*: ${fechaNac}\n` +
                         `🎂 *Edad:* ${textoEdad}\n` +
                         `🔢 *Puntaje Coopland:* ${total}\n` +

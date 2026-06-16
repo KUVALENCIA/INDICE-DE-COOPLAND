@@ -1,5 +1,5 @@
-// ¡ACTUALIZADO! Cambiamos a 'v4' para forzar la actualización con la lógica automática de Edad
-const CACHE_NAME = 'coopland-v4';
+// ¡ACTUALIZADO! Cambiamos a 'v5' para forzar la actualización con el expediente, botón limpiar y referencias.
+const CACHE_NAME = 'coopland-v5';
 const urlsToCache = [
   './',
   './index.html',
@@ -14,7 +14,7 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('Archivos cacheados correctamente para la versión 4');
+        console.log('Archivos cacheados correctamente para la versión 5');
         return cache.addAll(urlsToCache);
       })
   );
@@ -26,7 +26,7 @@ self.addEventListener('activate', event => {
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
-          // Si el nombre de la caché antigua no coincide con la versión actual (v4), se borra
+          // Si el nombre de la caché antigua no coincide con la versión actual (v5), se borra
           if (cacheName !== CACHE_NAME) {
             console.log('Borrando caché antigua:', cacheName);
             return caches.delete(cacheName);
